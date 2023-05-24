@@ -5,7 +5,7 @@ from hashlib import md5
 
 from grizzly_extras.transformer import transformer, TransformerError, TransformerContentType
 from grizzly_extras.arguments import parse_arguments, get_unsupported_arguments
-from ..utils import string2hex
+from ..utils import tohex
 
 
 from grizzly_extras.async_message import (
@@ -315,7 +315,7 @@ class AsyncMessageQueueHandler(AsyncMessageHandler):
                             # <!-- debug
                             hashsum = md5(payload.encode()).hexdigest().upper()
                             if md['MsgId'] is not None:
-                                msg_id = string2hex(md["MsgId"])
+                                msg_id = tohex(md["MsgId"])
                             else:
                                 msg_id = 'unknown'
                             self.logger.info(f'{msg_id=}, {hashsum=}')

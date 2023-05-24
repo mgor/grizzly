@@ -134,9 +134,6 @@ class ValidationHandlerAction(ResponseHandlerAction):
                 raise failure
 
 
-import logging
-
-
 class SaveHandlerAction(ResponseHandlerAction):
     def __init__(self, variable: str, /, expression: str, match_with: str, expected_matches: int = 1, as_json: bool = False) -> None:
         super().__init__(
@@ -146,7 +143,6 @@ class SaveHandlerAction(ResponseHandlerAction):
             as_json=as_json,
         )
 
-        self.logger = logging.getLogger('savehandler')
         self.variable = variable
 
     def __call__(
@@ -156,15 +152,6 @@ class SaveHandlerAction(ResponseHandlerAction):
         response: Optional[GrizzlyResponseContextManager] = None,
     ) -> None:
         match, expression, _ = self.get_match(input_context, user)
-
-        # <!-- debug
-        _, payload = input_context
-        if payload is not None or payload.lower() is not 'none':
-            hashsum = md5(payload.encode()).hexdigest().upper()
-        else:
-            hashsum = 'unknown'
-        self.logger.info(f'{match=}, {expression=}, {hashsum=}')
-        # // debug -->
 
         user.set_context_variable(self.variable, match)
 
@@ -214,6 +201,15 @@ class ResponseHandler(ResponseEvent):
 
         if len(handlers.payload) > 0 and response_payload is not None and len(response_payload) > 0:
             try:
+                # <!-- debug
+                if response_payload is not None:
+                    hashsum = md5(response_payload.encode()).hexdigest().upper()
+                else:
+                    hashsum = 'unknown'
+
+                user.logger.info(f'responsehandler: {hashsum=}')
+                # // debug -->
+
                 # do not guess which transformer to use
                 impl = transformer.available.get(request.response.content_type, None)
                 if impl is not None:
