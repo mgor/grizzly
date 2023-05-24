@@ -1,6 +1,7 @@
 from typing import Any, Dict, Tuple, Optional, List, cast
 from abc import ABC, abstractmethod
 from json import dumps as jsondumps
+from hashlib import md5
 
 import jinja2 as j2
 
@@ -133,6 +134,9 @@ class ValidationHandlerAction(ResponseHandlerAction):
                 raise failure
 
 
+import logging
+
+
 class SaveHandlerAction(ResponseHandlerAction):
     def __init__(self, variable: str, /, expression: str, match_with: str, expected_matches: int = 1, as_json: bool = False) -> None:
         super().__init__(
@@ -142,6 +146,7 @@ class SaveHandlerAction(ResponseHandlerAction):
             as_json=as_json,
         )
 
+        self.logger = logging.getLogger('savehandler')
         self.variable = variable
 
     def __call__(
@@ -151,6 +156,12 @@ class SaveHandlerAction(ResponseHandlerAction):
         response: Optional[GrizzlyResponseContextManager] = None,
     ) -> None:
         match, expression, _ = self.get_match(input_context, user)
+
+        # <!-- debug
+        _, payload = input_context
+        hashsum = md5(payload.encode()).hexdigest()
+        self.logger.info(f'{match=}, {hashsum=}')
+        # // debug -->
 
         user.set_context_variable(self.variable, match)
 

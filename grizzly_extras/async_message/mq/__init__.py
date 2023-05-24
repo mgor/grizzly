@@ -1,6 +1,7 @@
 from typing import Optional, Generator, Dict, cast
 from time import perf_counter as time, sleep
 from contextlib import contextmanager
+from hashlib import md5
 
 from grizzly_extras.transformer import transformer, TransformerError, TransformerContentType
 from grizzly_extras.arguments import parse_arguments, get_unsupported_arguments
@@ -296,6 +297,8 @@ class AsyncMessageQueueHandler(AsyncMessageHandler):
                     queue.put(request_payload, md)
 
                 elif action == 'GET':
+                    payload = None
+
                     if msg_id_to_fetch is not None:
                         gmo = self._create_gmo()
                         gmo.MatchOptions = pymqi.CMQC.MQMO_MATCH_MSG_ID
@@ -307,6 +310,13 @@ class AsyncMessageQueueHandler(AsyncMessageHandler):
                         try:
                             message = queue.get(max_message_size, md, gmo)
                             payload = self._get_payload(message)
+
+                            # <!-- debug
+                            hashsum = md5(payload.encode()).hexdigest()
+                            msg_id = md["MsgId"]
+                            self.logger.info(f'{msg_id=}, {hashsum=}')
+                            # // debug -->
+
                             response_length = len(payload) if payload is not None else 0
                             if retries > 0:
                                 self.logger.warning(f'got message after {retries} retries')

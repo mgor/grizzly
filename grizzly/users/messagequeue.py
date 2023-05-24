@@ -127,6 +127,7 @@ from typing import Dict, Any, Generator, Tuple, Optional
 from urllib.parse import urlparse, parse_qs, unquote
 from contextlib import contextmanager
 from time import perf_counter as time
+from hashlib import md5
 
 from zmq.sugar.constants import REQ as ZMQ_REQ
 import zmq.green as zmq
@@ -360,6 +361,12 @@ class MessageQueueUser(ResponseHandler, RequestLogger, GrizzlyUser):
                 'payload': action['payload'],
                 'metadata': action['metadata'],
             }
+
+            # <!-- debug
+            msg_id = action['metadata']['MsgId']  # type: ignore  # noqa  # pylint: disable=unsubscriptable-object
+            hashsum = md5(action['payload'].encode()).hexdigest()
+            self.logger.info(f'{msg_id=}, {hashsum=}')
+            # // debug -->
 
             if exception is not None and failure_exception is not None:
                 raise failure_exception()
