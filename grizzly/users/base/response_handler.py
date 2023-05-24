@@ -159,8 +159,8 @@ class SaveHandlerAction(ResponseHandlerAction):
 
         # <!-- debug
         _, payload = input_context
-        hashsum = md5(payload.encode()).hexdigest()
-        self.logger.info(f'{match=}, {hashsum=}')
+        hashsum = md5(payload.encode()).hexdigest().upper()
+        self.logger.info(f'{match=}, {expression=}, {hashsum=}')
         # // debug -->
 
         user.set_context_variable(self.variable, match)

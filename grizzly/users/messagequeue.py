@@ -133,6 +133,7 @@ from zmq.sugar.constants import REQ as ZMQ_REQ
 import zmq.green as zmq
 
 from grizzly_extras.async_message import AsyncMessageContext, AsyncMessageRequest, AsyncMessageResponse, async_message_request
+from grizzly_extras.async_message.utils import string2hex
 from grizzly_extras.arguments import get_unsupported_arguments, parse_arguments
 
 from grizzly.types import GrizzlyResponse, RequestDirection, RequestType
@@ -363,8 +364,8 @@ class MessageQueueUser(ResponseHandler, RequestLogger, GrizzlyUser):
             }
 
             # <!-- debug
-            msg_id = action['metadata']['MsgId']  # type: ignore  # noqa  # pylint: disable=unsubscriptable-object
-            hashsum = md5(action['payload'].encode()).hexdigest()
+            msg_id = string2hex(action['metadata']['MsgId'])  # type: ignore  # noqa  # pylint: disable=unsubscriptable-object
+            hashsum = md5(action['payload'].encode()).hexdigest().upper()
             self.logger.info(f'{msg_id=}, {hashsum=}')
             # // debug -->
 
