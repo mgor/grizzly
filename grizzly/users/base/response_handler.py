@@ -159,7 +159,10 @@ class SaveHandlerAction(ResponseHandlerAction):
 
         # <!-- debug
         _, payload = input_context
-        hashsum = md5(payload.encode()).hexdigest().upper()
+        if payload is not None or payload.lower() is not 'none':
+            hashsum = md5(payload.encode()).hexdigest().upper()
+        else:
+            hashsum = 'unknown'
         self.logger.info(f'{match=}, {expression=}, {hashsum=}')
         # // debug -->
 

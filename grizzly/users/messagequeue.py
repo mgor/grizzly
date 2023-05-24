@@ -364,8 +364,19 @@ class MessageQueueUser(ResponseHandler, RequestLogger, GrizzlyUser):
             }
 
             # <!-- debug
-            msg_id = string2hex(action['metadata']['MsgId'])  # type: ignore  # noqa  # pylint: disable=unsubscriptable-object
-            hashsum = md5(action['payload'].encode()).hexdigest().upper()
+            metadata = action.get('metadata', None)
+            payload = action.get('payload', None)
+
+            if metadata is not None and metadata.get('MsgId', None) is not None:
+                msg_id = string2hex(action['metadata']['MsgId'])  # type: ignore  # noqa  # pylint: disable=unsubscriptable-object
+            else:
+                msg_id = 'unknown'
+
+            if payload is not None:
+                hashsum = md5(payload.encode()).hexdigest().upper()
+            else:
+                hashsum = 'unknown'
+
             self.logger.info(f'{msg_id=}, {hashsum=}')
             # // debug -->
 
