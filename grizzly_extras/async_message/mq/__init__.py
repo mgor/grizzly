@@ -1,4 +1,4 @@
-from typing import Optional, Generator, Dict, cast
+from typing import Any, Optional, Generator, Dict, cast
 from time import perf_counter as time, sleep
 from contextlib import contextmanager
 from hashlib import md5
@@ -231,6 +231,14 @@ class AsyncMessageQueueHandler(AsyncMessageHandler):
             content_type = TransformerContentType.from_string(value)
         return content_type
 
+    def _get_safe_message_descriptor(self, md: pymqi.MD) -> Dict[str, Any]:
+        metadata: Dict[str, Any] = md.get()
+
+        if 'MsgId' in metadata:
+            metadata['MsgId'] = tohex(metadata['MsgId'])
+
+        return metadata
+
     def _request(self, request: AsyncMessageRequest) -> AsyncMessageResponse:
         if self.qmgr is None:
             raise AsyncMessageError('not connected')
@@ -311,12 +319,13 @@ class AsyncMessageQueueHandler(AsyncMessageHandler):
                         try:
                             message = queue.get(max_message_size, md, gmo)
                             payload = self._get_payload(message)
+                            metadata = self._get_safe_message_descriptor(md)
 
                             # <!-- debug
                             hashsum = md5(payload.encode()).hexdigest().upper()
-                            if md['MsgId'] is not None:
-                                msg_id = tohex(md["MsgId"])
-                            else:
+                            try:
+                                msg_id = metadata['MsgId']
+                            except:
                                 msg_id = 'unknown'
                             self.logger.info(f'{msg_id=}, {hashsum=}')
                             # // debug -->
@@ -356,7 +365,7 @@ class AsyncMessageQueueHandler(AsyncMessageHandler):
                     self.logger.info(f'{action} on {queue_name} took {delta} ms, {response_length=}, {retries=}')
                     return {
                         'payload': payload,
-                        'metadata': md.get(),
+                        'metadata': self._get_safe_message_descriptor(md),
                         'response_length': response_length,
                     }
 

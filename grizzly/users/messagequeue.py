@@ -133,7 +133,6 @@ from zmq.sugar.constants import REQ as ZMQ_REQ
 import zmq.green as zmq
 
 from grizzly_extras.async_message import AsyncMessageContext, AsyncMessageRequest, AsyncMessageResponse, async_message_request
-from grizzly_extras.async_message.utils import tohex
 from grizzly_extras.arguments import get_unsupported_arguments, parse_arguments
 
 from grizzly.types import GrizzlyResponse, RequestDirection, RequestType
@@ -368,7 +367,7 @@ class MessageQueueUser(ResponseHandler, RequestLogger, GrizzlyUser):
             payload = action.get('payload', None)
 
             if metadata is not None and metadata.get('MsgId', None) is not None:
-                msg_id = tohex(action['metadata']['MsgId'])  # type: ignore  # noqa  # pylint: disable=unsubscriptable-object
+                msg_id = action['metadata']['MsgId']  # type: ignore  # noqa  # pylint: disable=unsubscriptable-object
             else:
                 msg_id = 'unknown'
 
