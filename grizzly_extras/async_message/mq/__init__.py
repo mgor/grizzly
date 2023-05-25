@@ -330,9 +330,14 @@ class AsyncMessageQueueHandler(AsyncMessageHandler):
                             self.logger.info(f'{msg_id=}, {hashsum=}')
                             # // debug -->
 
-                            response_length = len(payload) if payload is not None else 0
+                            response_length = len(payload.encode()) if payload is not None else 0
+
+                            if response_length == 0:
+                                raise pymqi.MQMIError(comp=pymqi.CMQC.MQCC_FAILED, reason=pymqi.CMQC.MQRC_BACKED_OUT, custom_error='response length was 0 bytes')
+
                             if retries > 0:
                                 self.logger.warning(f'got message after {retries} retries')
+
                             self.qmgr.commit()
                         except:
                             self.qmgr.backout()
@@ -350,7 +355,11 @@ class AsyncMessageQueueHandler(AsyncMessageHandler):
                             else:
                                 raise AsyncMessageError(f'message with size {original_length} bytes does not fit in message buffer of {max_message_size} bytes')
                         elif e.reason == pymqi.CMQC.MQRC_BACKED_OUT:
-                            self.logger.warning(f'got MQRC_BACKED_OUT while getting message, {retries=}')
+                            warning_message = ['got MQRC_BACKED_OUT while getting message', f'{retries=}']
+                            custom_error = getattr(e, 'custom_error', None)
+                            if custom_error is not None:
+                                warning_message.insert(1, custom_error)
+                            self.logger.warning(', '.join(warning_message))
                             do_retry = True
                         else:
                             # Some other error condition.
