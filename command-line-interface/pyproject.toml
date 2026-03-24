@@ -99,6 +99,7 @@ grizzly-loadtester = { workspace = true }
 [dependency-groups]
 dev = [
     "grizzly-loadtester",
-    "pip>=25.2,<26.0",
+    "pip>=26.0",
     "requests-mock>=1.12.1,<2.0.0",
+    "types-requests>=2.32.4.20250809,<3.0.0",
 ]
